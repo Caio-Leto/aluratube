@@ -3,13 +3,33 @@ import config from "../config.json";
 import styled from "styled-components";
 import Menu from "../src/components/Menu";
 import { StyledTimeline } from "../src/components/Timeline";
+import { videoService } from "../src/services/videoService";
+
+
 
 function HomePage() {
+    const service = videoService()
     const [valorDoFiltro, setValorDoFiltro] = React.useState("")
+    const [playlists, setPlaylists] = React.useState({})
+
+    React.useEffect(() => {
+        service.getAllVideos()
+            .then((dados) => {
+                console.log(dados.data)
+                const novasPlaylists = { ...playlists }
+                dados.data.forEach((video) => {
+                    if (!novasPlaylists[video.playlist]) {
+                        novasPlaylists[video.playlist] = []
+                    }
+                    novasPlaylists[video.playlist].push(video)
+                })
+                setPlaylists(novasPlaylists)
+            })
+    }, [])
 
     return (
         <>
-            
+
             <div style={{
                 display: "flex",
                 flexDirection: "column",
@@ -18,7 +38,7 @@ function HomePage() {
             }}>
                 <Menu valorDoFiltro={valorDoFiltro} setValorDoFiltro={setValorDoFiltro} />
                 <Header />
-                <Timeline searchValue={valorDoFiltro} playlists={config.playlists}>
+                <Timeline searchValue={valorDoFiltro} playlists={playlists}>
                     Conteúdo
                 </Timeline>
             </div>
@@ -38,7 +58,7 @@ export default HomePage
 
 
 const StyledHeader = styled.div`
-    background-color: ${({theme}) => theme.backgroundLevel1};
+    background-color: ${({ theme }) => theme.backgroundLevel1};
 
     img {
         width: 80px;
@@ -53,9 +73,9 @@ const StyledHeader = styled.div`
         gap: 16px;
     }
 `;
-const StyleBanner = styled.div `
+const StyleBanner = styled.div`
     background-color: blue;
-    background-image: url(${({bg}) => bg});
+    background-image: url(${({ bg }) => bg});
     height: 230px;
 `
 function Header() {
@@ -86,8 +106,8 @@ function Timeline({ searchValue, ...propriedades }) {
         <StyledTimeline>
             {playlistNames.map((playlistName) => {
                 const videos = propriedades.playlists[playlistName];
-               // console.log(playlistName);
-               // console.log(videos);
+                // console.log(playlistName);
+                // console.log(videos);
                 return (
                     <section key={playlistName}>
                         <h2>{playlistName}</h2>
